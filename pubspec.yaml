@@ -1,0 +1,19 @@
+name: flashlight
+description: A simple flashlight app for Android
+version: 1.0.0
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'  # Replace with the desired SDK version range
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera: 0.8.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
