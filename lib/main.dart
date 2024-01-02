@@ -1,21 +1,13 @@
-// Import necessary packages
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 
-// Entry point of the application
 void main() async {
-  // Ensure that Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Obtain the available cameras
   List<CameraDescription> cameras = await availableCameras();
-
-  // Run the app
   runApp(MyApp(cameras: cameras));
 }
 
-// Main app class
 class MyApp extends StatelessWidget {
   final List<CameraDescription> cameras;
 
@@ -23,19 +15,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // MaterialApp widget defines the structure of the app
     return MaterialApp(
-      // Set the initial light theme
-      theme: ThemeData.light(),
-      // Set the dark theme
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.light().copyWith(
+        scaffoldBackgroundColor: Colors.grey[200],
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.grey[200],
+          centerTitle: true,
+        ),
+      ),
       darkTheme: ThemeData.dark(),
-      // Home screen of the app
       home: FlashlightScreen(cameras: cameras),
     );
   }
 }
 
-// Flashlight screen class
 class FlashlightScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
 
@@ -45,48 +39,38 @@ class FlashlightScreen extends StatefulWidget {
   _FlashlightScreenState createState() => _FlashlightScreenState();
 }
 
-// State class for the Flashlight screen
 class _FlashlightScreenState extends State<FlashlightScreen> {
   late CameraController _controller;
   late bool _isFlashlightOn;
+  double _brightnessLevel = 0.5;
 
   @override
   void initState() {
     super.initState();
-    // Initialize the camera controller
     _controller = CameraController(widget.cameras[0], ResolutionPreset.low);
-    // Initialize flashlight state
     _isFlashlightOn = false;
 
-    // Initialize the camera controller
     _controller.initialize().then((_) {
-      // Check if the widget is still mounted before setting state
       if (!mounted) {
         return;
       }
-      // Set the state to trigger a rebuild
       setState(() {});
     });
   }
 
   @override
   void dispose() {
-    // Dispose of the camera controller when the widget is disposed
     _controller.dispose();
     super.dispose();
   }
 
-  // Method to toggle the flashlight state
   void _toggleFlashlight() {
-    // Set the state based on the current flashlight state
     setState(() {
       _isFlashlightOn = !_isFlashlightOn;
-      // Set the flashlight mode
       _controller.setFlashMode(
         _isFlashlightOn ? FlashMode.torch : FlashMode.off,
       );
 
-      // Set the system UI overlay style
       if (_isFlashlightOn) {
         SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
       } else {
@@ -95,37 +79,64 @@ class _FlashlightScreenState extends State<FlashlightScreen> {
     });
   }
 
+  void _updateBrightnessLevel(double value) {
+    setState(() {
+      _brightnessLevel = value;
+      _controller.setExposureMode(
+        ExposureMode.auto, // Reset to auto mode before adjusting brightness
+      );
+
+      // Adjust the brightness level
+      _controller.setExposureOffset(value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Check if the camera is not initialized
     if (!_controller.value.isInitialized) {
       return Container();
     }
 
-    // Build the flashlight screen
     return Scaffold(
       appBar: AppBar(
-        title: Text('Flashlight App'),
+        title: Text(
+          'Flashlight App',
+          style: TextStyle(
+            color: Colors.black, // Title text color
+          ),
+        ),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Flashlight icon
             Icon(
               Icons.flashlight_on,
               size: 100.0,
-              color: _isFlashlightOn ? Colors.yellow : Colors.grey,
+              color: _isFlashlightOn ? Colors.amber : Colors.grey,
             ),
             SizedBox(height: 20.0),
-            // Button to toggle the flashlight
             ElevatedButton(
               onPressed: _toggleFlashlight,
               child: Text(_isFlashlightOn ? 'Turn Off' : 'Turn On'),
             ),
+            SizedBox(height: 20.0),
+            Text(
+              'Brightness Level: ${(_brightnessLevel * 100).toStringAsFixed(0)}%',
+              style: TextStyle(fontSize: 16.0),
+            ),
+            Slider(
+              value: _brightnessLevel,
+              onChanged: _updateBrightnessLevel,
+              min: 0.0,
+              max: 1.0,
+              divisions: 100,
+              label: '${(_brightnessLevel * 100).toStringAsFixed(0)}%',
+            ),
           ],
         ),
       ),
+      backgroundColor: _isFlashlightOn ? Colors.grey[50] : Colors.black,
     );
   }
 }
