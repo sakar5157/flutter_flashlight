@@ -10,7 +10,7 @@ A simple Flutter app that utilizes the device's camera to turn it into a flashli
 
 ## Screenshots
 
-Include screenshots or gifs of your app in action.
+
 
 ## Getting Started
 
